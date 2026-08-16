@@ -1,0 +1,78 @@
+name: Sync skill and publish
+
+# This repo is a THIN PACKAGING LAYER, not a source of truth. The skill itself
+# lives in the Riffkit monorepo and is served at https://riffkit.ai/SKILL.md on
+# deploy; everything here is pulled from there and the manifest is derived from
+# it (scripts/generate.mjs). Nothing about Riffkit is hand-written in this repo,
+# so there is no second copy to keep in sync.
+#
+# ── Why this runs unconditionally ────────────────────────────────────────────
+# It does NOT gate on "did the version change in this run". A version-triggered
+# publish cannot heal a version it already missed: on 2026-08-09 a registry
+# outage failed one publish and every later run then reported "version
+# unchanged, nothing to do", leaving a sibling channel serving a stale copy for
+# six days. So each run reconciles state — it asks the registry what is live and
+# publishes only what is missing. A run where the registry is already current
+# ends in a clean skip.
+
+on:
+  schedule:
+    - cron: "30 6 * * *" # daily, half an hour after the skill mirror pulls
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  id-token: write # OIDC — npm trusted publishing, so no token is ever stored
+
+jobs:
+  sync-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Trusted publishing needs npm >= 11.5.1 / Node >= 22.14.0.
+          node-version: "22.x"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Pull the live skill
+        run: |
+          set -euo pipefail
+          mkdir -p skills/riffkit
+          curl -fsSL https://riffkit.ai/SKILL.md     -o skills/riffkit/SKILL.md
+          curl -fsSL https://riffkit.ai/HEARTBEAT.md -o skills/riffkit/HEARTBEAT.md
+          curl -fsSL https://riffkit.ai/SKILL.json   -o SKILL.json
+
+      - name: Derive the manifest from it
+        run: node scripts/generate.mjs
+
+      - name: Smoke test — DSH's own provider must find the packaged skill
+        # Packaging that builds but cannot be discovered is the failure mode
+        # worth catching here: it is invisible from the outside, and the only
+        # other way to learn about it is a user reporting the skill missing.
+        run: node scripts/smoke.mjs
+
+      - name: Commit the pulled skill if it changed
+        run: |
+          if ! git diff --quiet; then
+            git config user.name "riffkit-bot"
+            git config user.email "bot@riffkit.ai"
+            git add -A
+            git commit -m "chore: sync skill $(node -p "require('./SKILL.json').version") from riffkit.ai"
+            git push
+          fi
+
+      - name: Publish if the registry does not have this version
+        run: |
+          set -euo pipefail
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "SKIP — $NAME@$VERSION is already published (npm versions are immutable)"
+          else
+            echo "PUBLISH — $NAME@$VERSION"
+            npm publish --access public
+          fi

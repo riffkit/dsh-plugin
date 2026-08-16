@@ -1,0 +1,29 @@
+{
+  "name": "@riffkit/dsh-plugin",
+  "version": "1.3.1",
+  "description": "Riff winning short videos — give one source (a TikTok link, an uploaded video, or an analyzed template) and the backend riffs its emotion formula into your own AI video (post-ready short-form or UGC-style ad creative), with optional digital character, product placement, and language.",
+  "license": "MIT",
+  "homepage": "https://riffkit.ai",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/riffkit/dsh-plugin.git"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "skill",
+    "tiktok",
+    "video",
+    "ai-video",
+    "riffkit"
+  ],
+  "files": [
+    "cordis.patch.yml",
+    "skills"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}
