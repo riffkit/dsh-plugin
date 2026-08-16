@@ -34,9 +34,27 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          # Trusted publishing needs npm >= 11.5.1 / Node >= 22.14.0.
-          node-version: "22.x"
+          node-version: "24.x"
           registry-url: "https://registry.npmjs.org"
+
+      - name: Make sure npm is new enough to do trusted publishing
+        # The constraint is on npm, NOT on Node. OIDC publishing landed in npm
+        # 11.5.1, and a Node line ships whatever npm it was cut with — Node 22
+        # ships npm 10, which has no OIDC support at all. It does not warn: it
+        # publishes ANONYMOUSLY and the registry answers `404 Not Found - PUT`,
+        # which reads like "package missing" and says nothing about auth. That
+        # cost a debugging round on 2026-08-16. So pin the real requirement here
+        # and fail loudly if it is not met, instead of inferring it from a Node
+        # version that could quietly change under us.
+        run: |
+          set -euo pipefail
+          npm install -g npm@latest
+          have=$(npm -v); need=11.5.1
+          echo "npm $have (need >= $need for OIDC)"
+          if [ "$(printf '%s\n%s\n' "$need" "$have" | sort -V | head -1)" != "$need" ]; then
+            echo "::error::npm $have predates trusted publishing; it would fall back to an anonymous publish and 404"
+            exit 1
+          fi
 
       - name: Pull the live skill
         run: |
