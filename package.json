@@ -1,6 +1,6 @@
 {
   "name": "@riffkit/dsh-plugin",
-  "version": "1.3.3",
+  "version": "1.4.0",
   "description": "Riff winning short videos — give one source (a TikTok link, an uploaded video, or an analyzed template) and the backend riffs its emotion formula into your own AI video (post-ready short-form or UGC-style ad creative), with optional digital character, product placement, and language.",
   "license": "MIT",
   "homepage": "https://riffkit.ai",
