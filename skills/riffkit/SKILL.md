@@ -1,6 +1,6 @@
 ---
 name: riffkit
-version: "1.5.2"
+version: "1.5.4"
 updated_at: "2026-09-14"
 source_url: "https://riffkit.ai/SKILL.md"
 homepage: "https://riffkit.ai"
@@ -247,6 +247,8 @@ The engine already mirrors the source. Your anchor is a **delta**, not a brief.
 
 4. **Keep separate axes separate.** How it's shot (lighting, grain, camera feel) and what's in it (wardrobe, props, setting) are different axes. Collapse them into one sentence and one will drag the other — asking for an unpolished look often flattens the subject too.
 
+5. **Quote what must stay word-for-word.** Text in double quotes — a slogan, a line to be spoken exactly, a caption that must read a certain way — is kept byte-for-byte and never translated, even when the video's `language` differs (`she says "Don't copy. Riff."` keeps that English line inside a Japanese video, and a caption bound to it reads the same). Everything unquoted is direction: the engine realizes it in the target language and fits numbers and details to the script it writes.
+
 **Building your own guard list.** When a render comes back with something you never asked for, that is the engine's default showing. Add an explicit "not X" next time. Experienced users accumulate a short list of these and paste it into every anchor — it is the cheapest thing they do.
 
 **Place a product image on camera by name (on_camera only)**: write the product image's `name` directly in `content_anchor` text and the engine matches that name and places the image on screen. The image must be named (an unnamed image can't be referenced). Example: writing in `content_anchor` "use the ingredient-scan screen shot to reveal the hidden additives" puts the image named "ingredient-scan screen" into the matching shot. (This is plain name matching, not an @-syntax — the @-mention is only a web-UI textarea helper that inserts the name for you; agents write the name themselves.)
@@ -306,7 +308,7 @@ The API uses a cookie-based session (`vee_session`). **Never ask for a password 
 
 #### `POST /api/skill/device/authorize` — start one-click sign-in
 
-No body, no auth. **Response:**
+No auth, and no body required. `client` (optional, `^[a-z0-9][a-z0-9-]{0,63}$`) — labels which skill started the sign-in; echoed as `skill` in `verification_uri_complete`; invalid values are ignored. **Response:**
 
 | Field | Type | Notes |
 |------|------|------|
@@ -729,7 +731,9 @@ Fix a finished video's subtitles without regenerating it: retime a line, move ca
 | `time_range` | ✓ | `[start_sec, end_sec]` — retime a line here |
 | `params.text` | ✓ | The on-screen text |
 | `params.position_x_ratio` / `params.position_y_ratio` | ✓ | Normalized 0-1 position (0.5/0.8 ≈ bottom-center); same value works across resolutions |
-| `params.color` | ✓ | `#RRGGBB` |
+| `params.color` | ✓ | `#RRGGBB` or a basic CSS colour name (`gold`, `red`, …); stored as hex |
+| `params.highlight_words` | ✓ | Words / phrases to accent inside this line — each must occur verbatim (same case) in `params.text`. Keep them in sync when you rewrite the text: an entry that no longer occurs is dropped at burn |
+| `params.highlight_color` | ✓ | Accent colour for `highlight_words` — `#RRGGBB` or a name; one accent per line (omit → gold) |
 | `params.approximate_size` | ✓ | One of `very_small` / `small` / `medium` / `large` / `very_large` |
 | `semantic` / `attributes` | keep | Pass through unchanged |
 
