@@ -63,6 +63,16 @@ jobs:
           curl -fsSL https://riffkit.ai/SKILL.md     -o skills/riffkit/SKILL.md
           curl -fsSL https://riffkit.ai/HEARTBEAT.md -o skills/riffkit/HEARTBEAT.md
           curl -fsSL https://riffkit.ai/SKILL.json   -o SKILL.json
+          # SKILL.md's index links its reference files as references/<name>.md,
+          # "in the references/ folder next to this file"; SKILL.json lists them.
+          # Pull each one next to SKILL.md. The folder is recreated each run so it
+          # mirrors SKILL.json exactly: a reference dropped upstream goes here too.
+          R=skills/riffkit/references
+          rm -rf "$R" && mkdir -p "$R"
+          node -e 'for (const [name, path] of Object.entries(require("./SKILL.json").references || {})) console.log(name, path)' |
+            while read -r name path; do
+              curl -fsSL "https://riffkit.ai${path}" -o "$R/${name}.md"
+            done
 
       - name: Derive the manifest from it
         run: node scripts/generate.mjs
@@ -75,10 +85,13 @@ jobs:
 
       - name: Commit the pulled skill if it changed
         run: |
-          if ! git diff --quiet; then
+          # -A first so files that are new rather than modified register too; the
+          # staged diff is what decides whether there's anything to push (plain
+          # `git diff` is blind to untracked files, e.g. a new reference file).
+          git add -A
+          if ! git diff --cached --quiet; then
             git config user.name "riffkit-bot"
             git config user.email "bot@riffkit.ai"
-            git add -A
             git commit -m "chore: sync skill $(node -p "require('./SKILL.json').version") from riffkit.ai"
             git push
           fi

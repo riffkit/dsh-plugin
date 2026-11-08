@@ -35,29 +35,35 @@ cannot shadow your skills, and yours cannot shadow it.
 
 ## Not using DSH?
 
-Then you do not need this package. The skill is a single Markdown file and every
-harness that reads a skills root can load it directly:
+Then you do not need this package. The skill is a small folder — `SKILL.md`,
+`HEARTBEAT.md` and the reference files `SKILL.md` links in `references/` — and
+every harness that reads a skills root can load it directly:
 
 ```bash
-mkdir -p ~/.agents/skills/riffkit
-curl -sSL https://riffkit.ai/SKILL.md -o ~/.agents/skills/riffkit/SKILL.md
+mkdir -p ~/.agents/skills/riffkit/references && cd ~/.agents/skills/riffkit
+curl -fsSL https://riffkit.ai/SKILL.md     -o SKILL.md
+curl -fsSL https://riffkit.ai/HEARTBEAT.md -o HEARTBEAT.md
+for n in details anchor api intents errors install; do
+  curl -fsSL "https://riffkit.ai/skill/$n.md" -o "references/$n.md"
+done
 ```
 
 That path — `~/.agents/skills` — is the shared root several harnesses scan, so
-one copy registers Riffkit in all of them. See
+one install registers Riffkit in all of them. See
 [riffkit/skill](https://github.com/riffkit/skill) for the skill itself, examples,
 and the install lines for Claude Code, Cursor and Codex.
 
 ## How this stays current
 
 Nothing here is written by hand. A daily workflow pulls `SKILL.md`,
-`HEARTBEAT.md` and `SKILL.json` from riffkit.ai — the single source of truth,
-served from the app on deploy — derives `package.json` and `cordis.patch.yml`
-from them (`scripts/generate.mjs`), proves the result is still discoverable by
-DSH's own provider (`scripts/smoke.mjs`), and publishes any version the registry
-does not have yet.
+`HEARTBEAT.md`, `SKILL.json` and the reference files `SKILL.json` lists from
+riffkit.ai — the single source of truth, served from the app on deploy —
+derives `package.json` and `cordis.patch.yml` from them
+(`scripts/generate.mjs`), proves the result is still discoverable by DSH's own
+provider (`scripts/smoke.mjs`), and publishes any version the registry does not
+have yet.
 
-The skill also carries its own 24-hour version heartbeat, so an installed copy
+The skill also carries its own 24-hour version heartbeat, so an installed skill
 re-syncs itself between package updates.
 
 MIT.

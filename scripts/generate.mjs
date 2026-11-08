@@ -36,23 +36,26 @@ const field = (key) => {
 const version = skillJson.version
 if (!/^\d+\.\d+\.\d+$/.test(version)) throw new Error(`SKILL.json version is not semver: ${version}`)
 
-// The skill's own description doubles as the agent's trigger list ("Triggers:
-// the user says …"), which is exactly right in frontmatter and wrong on an npm
-// listing page. Keep the part that describes the thing, drop the trigger half,
-// and collapse the wrapped lines.
+// The skill's own description is written for an agent: what the skill does up
+// to the first ":", then how to call it and the trigger list ("Triggers: the
+// user says …") — exactly right in frontmatter, wrong on an npm listing page.
+// Keep only that first clause and collapse the wrapped lines.
+const NPM_DESCRIPTION_MAX = 255 // npm keeps this many characters and cuts the rest mid-word
 const prose = (field('description') || '')
   .split(/\s*Triggers:/i)[0]
+  .split(':')[0]
   .replace(/\\n/g, ' ')
   .replace(/\s+/g, ' ')
   .trim()
-// Cut on a sentence boundary, never mid-word: an npm card that trails off in
-// the middle of a word reads as broken tooling.
-let description = ''
-for (const sentence of prose.split(/(?<=\.)\s+/)) {
-  if (description && (description + ' ' + sentence).length > 300) break
-  description = description ? `${description} ${sentence}` : sentence
+let description = prose && !/[.!?…]$/.test(prose) ? `${prose}.` : prose
+// If it ever outgrows npm's limit, cut at the last word boundary ourselves:
+// an npm card that trails off in the middle of a word reads as broken tooling.
+if (description.length > NPM_DESCRIPTION_MAX) {
+  const boundary = description.lastIndexOf(' ', NPM_DESCRIPTION_MAX - 1)
+  const head = boundary > 0 ? description.slice(0, boundary) : description.slice(0, NPM_DESCRIPTION_MAX - 1)
+  description = `${head.replace(/[\s,;:.—-]+$/, '')}…`
 }
-description = description.trim()
+description = description
   || 'Riff a winning short video into your own — the formula, not the footage.'
 
 writeFileSync(join(ROOT, 'package.json'), JSON.stringify({
