@@ -7,10 +7,14 @@ The [Riffkit](https://riffkit.ai) agent skill, packaged as an installable
 dsh plugin add @riffkit/dsh-plugin
 ```
 
-Riff a winning short video into your own: Riffkit studies why a video worked —
-the hook, the pacing, the emotional beats — and rebuilds that formula as new
-footage with your product, your character and your language. The source clip is
-never re-uploaded; what carries over is the structure, not a single frame.
+Change the outfit, place, product or person in your video: Riffkit re-renders
+it shot for shot, so your camera, cuts and timing stay. Or turn a winning short
+video into yours: Riffkit studies why it worked — the hook, the pacing, the
+emotional beats — and makes new footage of that formula with your story, your
+product and your character, in any of 10 languages. Or start from a written
+idea alone. Whichever you pick, your video is a new render and Riffkit never
+re-uploads a source clip. The agent quotes the price before it spends any
+credits ([pricing](https://riffkit.ai/pricing)).
 
 ## What this package is
 

@@ -56,7 +56,7 @@ if (description.length > NPM_DESCRIPTION_MAX) {
   description = `${head.replace(/[\s,;:.—-]+$/, '')}…`
 }
 description = description
-  || 'Riff a winning short video into your own — the formula, not the footage.'
+  || 'Change the outfit, place, product or person in your video, or riff a winning short video into your own.'
 
 writeFileSync(join(ROOT, 'package.json'), JSON.stringify({
   name: PKG_NAME,
@@ -65,7 +65,7 @@ writeFileSync(join(ROOT, 'package.json'), JSON.stringify({
   license: 'MIT',
   homepage: 'https://riffkit.ai',
   repository: { type: 'git', url: 'git+https://github.com/riffkit/dsh-plugin.git' },
-  keywords: ['dsh', 'deepseek-harness', 'skill', 'tiktok', 'video', 'ai-video', 'riffkit'],
+  keywords: ['dsh', 'deepseek-harness', 'skill', 'tiktok', 'video', 'ai-video', 'swap', 'video-editing', 'outfit-change', 'riffkit'],
   // Ship ONLY the patch and the skill tree. Without both, the installed package
   // has nothing for the patch to point at.
   files: ['cordis.patch.yml', 'skills'],
